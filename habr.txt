@@ -1,0 +1,240 @@
+Цель, к которой мы будем идти, на примере вычисления корня:
+<source lang="cpp">typedef RATIONAL(2,0) x;
+typedef sqrt<x>::type result;
+</source>
+Корень числа вычислится на этапе компиляции. Представление числа хранится как отношение двух целых чисел, поэтому чтобы получить значение, нужно обращаться через метод get();
+<source lang="cpp">std::cout << result::get() << std::endl;</source>
+1.41421356
+
+<habracut text="Подробности" />
+
+Для хранения чисел с плавающей точкой будем использовать соотношение
+двух целых чисел - дробь.
+<source lang="cpp">template <int64_t A, int64_t B>
+struct rational_t
+{
+  const static int64_t a = A, b = B;
+  static double get() { return (double)a/b; }
+};</source>
+Например, чтобы объявить число 2, нужно объявить тип rational_t<2,1> (две первых),
+<source lang="cpp">rational_t<3,2> -> 3/2
+rational_t<56/10> -> 56/10 = 5.6
+rational_t<3,100> -> 3/100 = 0.03</source>
+Для удобства будем использовать макрос RATIONAL:
+<source lang="cpp">#define RATIONAL(A1, A2) rational_t<(int)(A1##A2), pow<10, sizeof(#A2)-1>::value>
+</source>
+Рассмотрим его на примере: RATIONAL(12,34) - объявляет дробь 12.34 (12 целых 34 сотых)
+1) A1##A2 склеивает два аргумента в 1234
+2) sizeof(#A2)-1 = szieof("34")-1 = 3 - 1 = 2
+3) pow<10, 2> 10 в степени 2 = 100
+Таким образом, RATIONAL(12,34) объявляет тип rational_t<1234, 100> (то есть 1234/100 = 12.34)
+Функция pow пишется так:
+<source lang="cpp">template <int V, unsigned D>
+struct pow
+{
+  const static int value = V * pow<V, D - 1>::value;
+};
+template <int V>
+struct pow<V, 0>
+{
+  const static int value = 1;
+};</source>
+Опишем арифметические операции для шаблона rational_t.
+Сложение дробей: a1/b1 + a2/b2 = (a1*b2 + a2*b1)/(b1*b2), следовательно:
+<source lang="cpp">template <class R1, class R2>
+struct plus
+{
+  typedef rational_t<R1::a * R2::b + R2::a * R1::b, R1::b * R2::b> type;
+};</source>
+При постоянном сложении числитель и знаменатель будут постоянно по модулю расти. Чтобы не произошло переполнение при очередном сложении, необходимо дробь сокращать. Перепишем функцию сложения:
+<source lang="cpp">template <class R1, class R2>
+struct plus
+{
+  typedef rational_t<R1::a * R2::b + R2::a * R1::b, R1::b * R2::b> type1;
+  typedef typename reduce<type1>::type type;
+};</source>
+Метафункция reduce принимает несокращенную дробь и возвращает сокращенную. Приведём остальные операции:
+<source lang="cpp">template <class R1, class R2>
+struct minus
+{
+  typedef rational_t<R1::a * R2::b - R2::a * R1::b, R1::b * R2::b> type1;
+  typedef typename reduce<type1>::type type;
+};
+template <class R1, class R2>
+struct mult
+{
+  typedef rational_t<R1::a * R2::a, R1::b * R2::b> type1;
+  typedef typename reduce<type1>::type type;
+};
+template <class R1, class R2>
+struct divide
+{
+  typedef rational_t<R1::a * R2::b, R1::b * R2::a> type1;
+  typedef typename reduce<type1>::type type;
+};</source>
+Операция сравнения:
+<source lang="cpp">template <class R1, class R2>
+struct less
+{
+  static const bool value = (R1::a * R2::b - R2::a * R1::b) < 0;
+};</source>
+Определим метафункцию, определяющую необходимость сокращения. Максимальное допустимое число для хранения в 64-битном формате будет (2^64)^0.5/2 = 1ll<<31, следовательно:
+<source lang="cpp">template <class R>
+struct require_reduce
+{
+  const static int64_t max = (1ll<<31);
+  const static bool value = (R::a >= max) || (R::b >= max);
+};</source>
+value означает необходимость сокращения дроби, иначе может произойти переполнение при выполнении операции.
+Дробь нужно сначала сокращать точно - по делимости на простые числа (reduce_accurate),
+если сокращение не удалось, то сокращать неточно, деля числитель и
+знаменатель нацело на 2 (reduce_inaccurate).
+Объявим метафункцию аккуратного сокращения:
+<source lang="cpp">template <bool, int i, class R>
+struct reduce_accurate;</source>
+Неаккуратное сокращение, после него делается попытка снова сократить
+аккуратно, если, конечно, это требуется:
+<source lang="cpp">template <bool, class R>
+struct reduce_inaccurate
+{
+  typedef rational_t<(R::a >> 1), (R::b >> 1)> type_;
+  typedef typename reduce_accurate<require_reduce<type_>::value, 0, type_>::type type;
+};</source>
+Если не требуется, то неаккуратное сокращение возвращает то же значение:
+<source lang="cpp">template <class R>
+struct reduce_inaccurate<false, R>
+{
+  typedef R type;
+};</source>
+Аккуратное сокращение:
+<source lang="cpp">template <bool, int i, class R>
+struct reduce_accurate
+{
+  /// сначала определяем делитель - простое число
+  const static int64_t divider = prime<i>::value;
+  /// определяем возможность делимости числителя и знаменателя
+  const static bool divisible = !(R::a % divider) && !(R::b % divider);
+  /// если делимость возможна, то выполняем деление
+  const static int64_t new_a = divisible ? (R::a / divider) : R::a;
+  const static int64_t new_b = divisible ? (R::b / divider) : R::b;
+  /// временно сохраняем сокращенное значение
+  typedef rational_t<new_a, new_b> new_type;
+  /// выполняем точное деление до тех пор, пока простое число divider меньше 100, если брать больше,
+  /// то скорость компиляции падает значительно
+  const static bool continue_reduce = divider <= 100 && require_reduce<new_type>::value;
+  /// выполняем сокращение на то же простое число или на следующее
+  typedef typename reduce_accurate<
+    continue_reduce,
+    divisible ? i : i+1,
+    new_type
+    >::type type;
+};</source>
+Если точного сокращения не достаточно, то выполнить неточное сокращение:
+<source lang="cpp">template <int i, class R>
+struct reduce_accurate<false, i, R>
+{
+  typedef typename reduce_inaccurate<require_reduce<R>::value, R>::type type;
+};</source>
+Алгоритм вычисления простых чисел был позаимствован отсюда http://habrahabr.ru/blogs/crazydev/124476/
+с усовершенствованием проверки делимости до целовго корня:
+<source lang="cpp">template<int n>
+struct is_prime
+{
+  static const bool value = is_prime_rec<n, sqrt<n>::value>::value;
+};</source>
+где алгоритм вычисления корня в целых числах таков:
+<source lang="cpp">template <bool, int res, int x>
+struct calc_res
+{
+  const static int tmp = (res+x/res)/2;
+  typedef calc_res<(res > tmp), (tmp<res)?tmp:res, x> a;
+  static const int value = a::value;
+};
+template <int res, int x>
+struct calc_res<false, res, x>
+{
+  static const int value = res;
+};
+template <int x>
+struct sqrt
+{
+  static const int value = calc_res<true, (x+1)/2, x>::value;
+};
+template <>
+struct sqrt<0>
+{
+  static const int value = 0;
+};</source>
+Перейдём к самому интересному, напишем алгоритм вычисления корня по методу Ньютона.
+Эта реализация не претендует на точность и приведена в качестве примера.
+Оперделим для удобства функцию meta_if:
+meta_if(n, a1, a2) равносильна выражению (n ? a1 : a2)
+t<source lang="cpp">emplate <bool n, class A1, class A2>
+struct meta_if
+{
+  typedef A2 type;
+};
+template <class A1, class A2>
+struct meta_if<true, A1, A2>
+{
+  typedef A1 type;
+};</source>
+<source lang="cpp">основной алгоритм:
+sqrt_eval(p, res, x) {
+  t1 = x/res
+  t2 = res+t1
+  tmp = t2/2
+  less_val = tmp < res ? tmp : res
+  if (p-1 == 0)
+    return less_val;
+  return sqrt_eval(p-1, less_val, x)
+}</source>
+
+С использованием rational_t:
+<source lang="cpp">template <int64_t p, class res, class x>
+struct sqrt_eval
+{
+  typedef typename divide<x, res>::type t1;
+  typedef typename plus<res, t1>::type t2;
+  typedef typename divide<t2, rational_t<2,1> >::type tmp;
+  typedef typename meta_if<less<tmp, res>::value, tmp, res>::type less_val;
+  typedef typename sqrt_eval<p-1, less_val, x>::type type;
+};
+template <class res, class x>
+struct sqrt_eval<0, res, x>
+{
+  typedef res type;
+};</source>
+
+<source lang="cpp">sqrt(x) {
+  res = (x + 1)/2
+  return sqrt_eval(15, res, x)
+}
+</source>
+15 - кол-во шагов в алгоритме Ньютона.
+<source lang="cpp">template <class x>
+struct sqrt
+{
+  typedef typename divide< typename plus<x, rational_t<1,1> >::type, rational_t<2,1> >::type res;
+  typedef typename sqrt_eval<15, res, x>::type type;
+};
+template <int64_t a>
+struct sqrt< rational_t<0, a> >
+{
+  static const int64_t value = 0;
+};</source>
+
+Пример:
+<source lang="cpp">
+#include <iostream>
+#include "rational_algo.hpp"
+
+int main()
+{
+  std::cout.precision(15);
+  const double s = rational::sqrt<RATIONAL(2,0)>::type::get();
+  std::cout << s << std::endl;
+  std::cout << 2-s*s << std::endl;
+
+  return 0;
+}</source>
