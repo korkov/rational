@@ -4,6 +4,7 @@
 #include "prime.hpp"
 #include <stdint.h>
 #include "rational.hpp"
+#include "nod.hpp"
 
 namespace rational
 {
@@ -19,14 +20,14 @@ namespace rational
       const static bool value = (R::a >= max) || (R::b >= max);
     };
 
-    template <bool, int i, class R>
+    template <bool, class R>
     struct reduce_accurate;
 
     template <bool, class R>
     struct reduce_inaccurate
     {
       typedef rational_t<(R::a >> 1), (R::b >> 1)> type_;
-      typedef typename reduce_accurate<require_reduce<type_>::value, 0, type_>::type type;
+      typedef typename reduce_accurate<require_reduce<type_>::value, type_>::type type;
     };
 
     template <class R>
@@ -35,27 +36,18 @@ namespace rational
       typedef R type;
     };
 
-    template <bool, int i, class R>
+    template <bool, class R>
     struct reduce_accurate
     {
-      const static int64_t divider = prime<i>::value;
-      const static bool divisible = !(R::a % divider) && !(R::b % divider);
-
-      const static int64_t new_a = divisible ? (R::a / divider) : R::a;
-      const static int64_t new_b = divisible ? (R::b / divider) : R::b;
+      const static int64_t new_a = R::a / nod<R::a, R::b>::value;
+      const static int64_t new_b = R::b / nod<R::a, R::b>::value;
 
       typedef rational_t<new_a, new_b> new_type;
-      const static bool continue_reduce = divider <= 100 && require_reduce<new_type>::value;
-
-      typedef typename reduce_accurate<
-        continue_reduce,
-        divisible ? i : i+1,
-        new_type
-        >::type type;
+      typedef typename reduce_inaccurate<require_reduce<new_type>::value, new_type>::type type;
     };
 
-    template <int i, class R>
-    struct reduce_accurate<false, i, R>
+    template <class R>
+    struct reduce_accurate<false, R>
     {
       typedef typename reduce_inaccurate<require_reduce<R>::value, R>::type type;
     };
@@ -63,7 +55,7 @@ namespace rational
     template <class R>
     struct reduce
     {
-      typedef typename reduce_accurate<require_reduce<R>::value, 0, R>::type type;
+      typedef typename reduce_accurate<require_reduce<R>::value, R>::type type;
     };
   }
 
