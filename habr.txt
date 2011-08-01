@@ -5,9 +5,7 @@ typedef sqrt<x>::type result;
 Корень числа вычислится на этапе компиляции. Представление числа хранится как отношение двух целых чисел, поэтому чтобы получить значение, нужно обращаться через метод get();
 <source lang="cpp">std::cout << result::get() << std::endl;</source>
 1.41421356
-
 <habracut text="Подробности" />
-
 Для хранения чисел с плавающей точкой будем использовать соотношение
 двух целых чисел - дробь.
 <source lang="cpp">template <int64_t A, int64_t B>
@@ -189,7 +187,6 @@ sqrt_eval(p, res, x) {
     return less_val;
   return sqrt_eval(p-1, less_val, x)
 }</source>
-
 С использованием rational_t:
 <source lang="cpp">template <int64_t p, class res, class x>
 struct sqrt_eval
@@ -223,7 +220,6 @@ struct sqrt< rational_t<0, a> >
 {
   static const int64_t value = 0;
 };</source>
-
 Пример:
 <source lang="cpp">
 #include <iostream>
@@ -235,6 +231,8 @@ int main()
   const double s = rational::sqrt<RATIONAL(2,0)>::type::get();
   std::cout << s << std::endl;
   std::cout << 2-s*s << std::endl;
-
   return 0;
 }</source>
+
+Пример цельным файлом: http://pastebin.com/fbSawJ6y
+Проектом: https://github.com/skor-ru/rational
