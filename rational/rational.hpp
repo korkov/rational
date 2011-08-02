@@ -10,42 +10,69 @@ namespace rational
     template <int64_t A, int64_t B>
     struct rational_t
     {
-      const static int64_t a = A, b = B;
+      static const int64_t a = A;
+      static const int64_t b = B;
       static double get() { return (double)a/b; }
+      typedef rational_t type;
     };
 
-    template <class R1, class R2>
     struct plus
     {
-      typedef rational_t<R1::a * R2::b + R2::a * R1::b, R1::b * R2::b> type1;
-      typedef typename reduce<type1>::type type;
+      template <class R1_, class R2_>
+      struct apply
+      {
+        typedef typename R1_::type R1;
+        typedef typename R2_::type R2;
+        typedef rational_t<R1::a * R2::b + R2::a * R1::b, R1::b * R2::b> type1;
+        typedef typename reduce<type1>::type type;
+      };
     };
 
-    template <class R1, class R2>
     struct minus
     {
-      typedef rational_t<R1::a * R2::b - R2::a * R1::b, R1::b * R2::b> type1;
-      typedef typename reduce<type1>::type type;
+      template <class R1_, class R2_>
+      struct apply
+      {
+        typedef typename R1_::type R1;
+        typedef typename R2_::type R2;
+        typedef rational_t<R1::a * R2::b - R2::a * R1::b, R1::b * R2::b> type1;
+        typedef typename reduce<type1>::type type;
+      };
     };
 
-    template <class R1, class R2>
     struct mult
     {
-      typedef rational_t<R1::a * R2::a, R1::b * R2::b> type1;
-      typedef typename reduce<type1>::type type;
+      template <class R1_, class R2_>
+      struct apply
+      {
+        typedef typename R1_::type R1;
+        typedef typename R2_::type R2;
+        typedef rational_t<R1::a * R2::a, R1::b * R2::b> type1;
+        typedef typename reduce<type1>::type type;
+      };
     };
 
-    template <class R1, class R2>
     struct divide
     {
-      typedef rational_t<R1::a * R2::b, R1::b * R2::a> type1;
-      typedef typename reduce<type1>::type type;
+      template <class R1_, class R2_>
+      struct apply
+      {
+        typedef typename R1_::type R1;
+        typedef typename R2_::type R2;
+        typedef rational_t<R1::a * R2::b, R1::b * R2::a> type1;
+        typedef typename reduce<type1>::type type;
+      };
     };
 
-    template <class R1, class R2>
     struct less
     {
-      static const bool value = (R1::a * R2::b - R2::a * R1::b) < 0;
+      template <class R1_, class R2_>
+      struct apply
+      {
+        typedef typename R1_::type R1;
+        typedef typename R2_::type R2;
+        static const bool value = (R1::a * R2::b - R2::a * R1::b) < 0;
+      };
     };
 
     template <int V, unsigned D>
