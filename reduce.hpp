@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "rational.hpp"
-#include "nod.hpp"
+#include "gcd.hpp"
 
 namespace rational
 {
