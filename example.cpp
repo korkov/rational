@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "rational_algo.hpp"
+#include "rational/math.hpp"
 
 int main()
 {
