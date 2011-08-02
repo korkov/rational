@@ -7,21 +7,22 @@ namespace rational
 {
   namespace detail
   {
+    /// вычисление НОД
     template <int64_t m, int64_t n>
-    struct nod;
+    struct gcd;
     template <int64_t a>
-    struct nod<a, 0>
+    struct gcd<a, 0>
     {
       static const int64_t value = a;
     };
     template <int64_t a, int64_t b>
-    struct nod
+    struct gcd
     {
-      static const int64_t value = nod<b, a % b>::value;
+      static const int64_t value = gcd<b, a % b>::value;
     };
   }
 
-  using detail::nod;
+  using detail::gcd;
 }
 
 #endif  // RATIONAL_1312222485

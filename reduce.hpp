@@ -1,7 +1,6 @@
 #ifndef RATIONAL_1311695677
 #define RATIONAL_1311695677
 
-#include "prime.hpp"
 #include <stdint.h>
 #include "rational.hpp"
 #include "nod.hpp"
@@ -39,8 +38,8 @@ namespace rational
     template <bool, class R>
     struct reduce_accurate
     {
-      const static int64_t new_a = R::a / nod<R::a, R::b>::value;
-      const static int64_t new_b = R::b / nod<R::a, R::b>::value;
+      const static int64_t new_a = R::a / gcd<R::a, R::b>::value;
+      const static int64_t new_b = R::b / gcd<R::a, R::b>::value;
 
       typedef rational_t<new_a, new_b> new_type;
       typedef typename reduce_inaccurate<require_reduce<new_type>::value, new_type>::type type;
