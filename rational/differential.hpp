@@ -12,7 +12,7 @@ namespace rational
     typedef rational_t<1, 1000> lim;
     typedef rational_t<1, 10> lim_n;
 
-#define VAR(V, WHAT) typedef WHAT V;
+#define VAR(V, WHAT) typedef WHAT V
 #define CALL(ARGS...) typename mpl::apply<ARGS >::type
     struct differential_eval
     {
@@ -66,7 +66,7 @@ namespace rational
       };
     };
 
-#undef VAL
+#undef VAR
 #undef CALL
 
     struct differential_func

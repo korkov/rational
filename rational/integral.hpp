@@ -13,7 +13,7 @@ namespace rational
 
     struct integral_eval
     {
-#define VAR(V, WHAT) typedef WHAT V;
+#define VAR(V, WHAT) typedef WHAT V
 #define CALL(ARGS...) typename mpl::apply<ARGS >::type
 
       template <class C, class F, class x0, class x, class h>
@@ -26,9 +26,7 @@ namespace rational
         VAR(s, CALL(mult, h, f_));
         VAR(dist, CALL(minus, x, x0));
         VAR(cont, CALL(less, CALL(abs, h), CALL(abs,dist)));
-
         VAR(rest, CALL(integral_eval, cont, F, x_next, x, h));
-
         VAR(type, CALL(plus, s, rest));
       };
 
@@ -52,7 +50,7 @@ namespace rational
       };
     };
   }
-#undef VAL
+#undef VAR
 #undef CALL
 
   using detail_integral::integral;
