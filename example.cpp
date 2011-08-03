@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "rational/math.hpp"
+#include <rational/math.hpp>
+#include <rational/differential.hpp>
 
 int main()
 {
@@ -9,12 +10,11 @@ int main()
 
   std::cout.precision(15);
 
-  typedef RATIONAL(2,0) x;
-  typedef mpl::apply<sqrt, x> result;
+  typedef mpl::apply<differential_func, sqrt>::type sqrt_d;
+  typedef mpl::apply<sqrt_d, RATIONAL(1,0) >::type res;
 
-  const double s = result::type::get();
-  std::cout << s << std::endl;
-  std::cout << 2-s*s << std::endl;
+  std::cout << res::get() << std::endl;
+  std::cout << 0.5-res::get() << std::endl;
 
   return 0;
 }

@@ -4,19 +4,21 @@
 #include <stdint.h>
 #include "rational.hpp"
 #include "gcd.hpp"
+#include <boost/static_assert.hpp>
 
 namespace rational
 {
+  template <int64_t A, int64_t B = 1>
+  struct rational_t;
+
   namespace detail
   {
-    template <int64_t A, int64_t B>
-    struct rational_t;
-
     template <class R>
     struct require_reduce
     {
       const static int64_t max = (1ll<<31);
-      const static bool value = (R::a >= max) || (R::b >= max);
+      const static bool value = (R::a >= max) || (R::b >= max) || (R::a <= -max);
+      BOOST_STATIC_ASSERT(R::b > 0);
     };
 
     template <bool, class R>
@@ -25,7 +27,7 @@ namespace rational
     template <bool, class R>
     struct reduce_inaccurate
     {
-      typedef rational_t<(R::a >> 1), (R::b >> 1)> type_;
+      typedef rational_t<(R::a / 2), (R::b / 2)> type_;
       typedef typename reduce_accurate<require_reduce<type_>::value, type_>::type type;
     };
 

@@ -15,9 +15,11 @@ namespace rational
     {
       static const int64_t value = a;
     };
-    template <int64_t a, int64_t b>
+    template <int64_t a_, int64_t b_>
     struct gcd
     {
+      static const int64_t a = a_ > 0 ? a_ : -a_;
+      static const int64_t b = b_ > 0 ? b_ : -b_;
       static const int64_t value = gcd<b, a % b>::value;
     };
   }

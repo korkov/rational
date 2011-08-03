@@ -38,9 +38,33 @@ namespace rational
         typedef rational_t<0, 1> type;
       };
     };
+
+    struct abs
+    {
+      typedef rational_t<0> null;
+
+      template <bool, class x>
+      struct eval
+      {
+        typedef typename mpl::apply<minus, null, x>::type type;
+      };
+      template <class x>
+      struct eval<false, x>
+      {
+        typedef typename x::type type;
+      };
+
+      template <class x>
+      struct apply
+      {
+        static const bool neg = mpl::apply<less, x, null>::value;
+        typedef typename eval<neg, x>::type type;
+      };
+    };
   }
 
   using detail_math::sqrt;
+  using detail_math::abs;
 }
 
 #endif  // RATIONAL_1311698245
