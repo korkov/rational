@@ -71,8 +71,8 @@ namespace rational
     {
       typedef typename R1_::type R1;
       typedef typename R2_::type R2;
-      typedef apply type;
       static const bool value = (R1::a * R2::b - R2::a * R1::b) < 0;
+      typedef boost::mpl::bool_<value> type;
     };
   };
 

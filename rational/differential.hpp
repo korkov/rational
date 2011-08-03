@@ -14,7 +14,6 @@ namespace rational
 
 #define VAR(V, WHAT) typedef WHAT V;
 #define CALL(ARGS...) typename mpl::apply<ARGS >::type
-
     struct differential_eval
     {
       // f1 = f(x+delta)
@@ -47,7 +46,7 @@ namespace rational
         VAR(err, CALL(minus, CALL(divide, f1, f2), rational_t<1>));
         VAR(cont, CALL(less, lim, CALL(abs, err)));
         VAR(new_delta, CALL(mult, delta, lim_n));
-        VAR(type, CALL(differential_algo, mpl::bool_<cont::value>, f, x, new_delta));
+        VAR(type, CALL(differential_algo, cont, f, x, new_delta));
       };
 
       // type = f'(x)
@@ -66,6 +65,9 @@ namespace rational
         VAR(type, CALL(differential_algo, mpl::bool_<true>, f, x, rational_t<1>));
       };
     };
+
+#undef VAL
+#undef CALL
 
     struct differential_func
     {
