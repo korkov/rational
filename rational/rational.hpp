@@ -3,6 +3,7 @@
 
 #include "reduce.hpp"
 #include <boost/mpl/apply.hpp>
+#include <boost/mpl/quote.hpp>
 
 namespace rational
 {
@@ -15,66 +16,57 @@ namespace rational
     typedef rational_t type;
   };
 
-  struct plus
+  template <class R1_, class R2_>
+  struct plus_
   {
-    template <class R1_, class R2_>
-    struct apply
-    {
-      typedef typename R1_::type R1;
-      typedef typename R2_::type R2;
-      typedef rational_t<R1::a * R2::b + R2::a * R1::b, R1::b * R2::b> type1;
-      typedef typename reduce<type1>::type type;
-    };
+    typedef typename R1_::type R1;
+    typedef typename R2_::type R2;
+    typedef rational_t<R1::a * R2::b + R2::a * R1::b, R1::b * R2::b> type1;
+    typedef typename reduce<type1>::type type;
   };
 
-  struct minus
+  template <class R1_, class R2_>
+  struct minus_
   {
-    template <class R1_, class R2_>
-    struct apply
-    {
-      typedef typename R1_::type R1;
-      typedef typename R2_::type R2;
-      typedef rational_t<R1::a * R2::b - R2::a * R1::b, R1::b * R2::b> type1;
-      typedef typename reduce<type1>::type type;
-    };
+    typedef typename R1_::type R1;
+    typedef typename R2_::type R2;
+    typedef rational_t<R1::a * R2::b - R2::a * R1::b, R1::b * R2::b> type1;
+    typedef typename reduce<type1>::type type;
   };
 
-  struct mult
+  template <class R1_, class R2_>
+  struct mult_
   {
-    template <class R1_, class R2_>
-    struct apply
-    {
-      typedef typename R1_::type R1;
-      typedef typename R2_::type R2;
-      typedef rational_t<R1::a * R2::a, R1::b * R2::b> type1;
-      typedef typename reduce<type1>::type type;
-    };
+    typedef typename R1_::type R1;
+    typedef typename R2_::type R2;
+    typedef rational_t<R1::a * R2::a, R1::b * R2::b> type1;
+    typedef typename reduce<type1>::type type;
   };
 
-  struct divide
+  template <class R1_, class R2_>
+  struct divide_
   {
-    template <class R1_, class R2_>
-    struct apply
-    {
-      typedef typename R1_::type R1;
-      typedef typename R2_::type R2;
-      static const int64_t k = (R2::a > 0 ? 1 : -1);
-      typedef rational_t<k * R1::a * R2::b, k * R1::b * R2::a> type1;
-      typedef typename reduce<type1>::type type;
-    };
+    typedef typename R1_::type R1;
+    typedef typename R2_::type R2;
+    static const int64_t k = (R2::a > 0 ? 1 : -1);
+    typedef rational_t<k * R1::a * R2::b, k * R1::b * R2::a> type1;
+    typedef typename reduce<type1>::type type;
   };
 
-  struct less
+  template <class R1_, class R2_>
+  struct less_
   {
-    template <class R1_, class R2_>
-    struct apply
-    {
-      typedef typename R1_::type R1;
-      typedef typename R2_::type R2;
-      static const bool value = (R1::a * R2::b - R2::a * R1::b) < 0;
-      typedef boost::mpl::bool_<value> type;
-    };
+    typedef typename R1_::type R1;
+    typedef typename R2_::type R2;
+    static const bool value = (R1::a * R2::b - R2::a * R1::b) < 0;
+    typedef boost::mpl::bool_<value> type;
   };
+
+  typedef boost::mpl::quote2<plus_> plus;
+  typedef boost::mpl::quote2<minus_> minus;
+  typedef boost::mpl::quote2<mult_> mult;
+  typedef boost::mpl::quote2<divide_> divide;
+  typedef boost::mpl::quote2<less_> less;
 
   namespace detail
   {

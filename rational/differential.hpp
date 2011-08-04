@@ -8,6 +8,7 @@ namespace rational
   namespace detail
   {
     namespace mpl = boost::mpl;
+    using namespace mpl::placeholders;
 
     typedef rational_t<1, 1000> lim;
     typedef rational_t<1, 10> lim_n;
@@ -74,7 +75,7 @@ namespace rational
       template <class F>
       struct apply
       {
-        typedef mpl::bind<differential, F, mpl::placeholders::_1> type;
+        typedef mpl::bind<differential, F, _1> type;
       };
     };
   }

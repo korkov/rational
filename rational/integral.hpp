@@ -49,11 +49,21 @@ namespace rational
         VAR(type, CALL(plus, rational_t<0>, rest));
       };
     };
+
+    struct integral_func
+    {
+      template <class F>
+      struct apply
+      {
+        typedef mpl::bind<integral, F, _1, _2> type;
+      };
+    };
   }
 #undef VAR
 #undef CALL
 
   using detail_integral::integral;
+  using detail_integral::integral_func;
 }
 
 

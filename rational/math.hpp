@@ -43,13 +43,13 @@ namespace rational
     {
       typedef rational_t<0> null;
 
-      template <bool, class x>
+      template <class, class x>
       struct eval
       {
         typedef typename mpl::apply<minus, null, x>::type type;
       };
       template <class x>
-      struct eval<false, x>
+      struct eval<mpl::false_, x>
       {
         typedef typename x::type type;
       };
@@ -57,7 +57,7 @@ namespace rational
       template <class x>
       struct apply
       {
-        static const bool neg = mpl::apply<less, x, null>::value;
+        typedef typename mpl::apply<less, x, null>::type neg;
         typedef typename eval<neg, x>::type type;
       };
     };
