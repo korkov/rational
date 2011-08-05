@@ -23,11 +23,12 @@ int main()
 
 #if 0
   typedef mpl::apply<integral_func, sqrt>::type sqrt_i2;
-  typedef mpl::bind<sqrt_i2, RATIONAL(0,0), _1> sqrt_i;
+  //typedef mpl::bind<sqrt_i2, RATIONAL(0,0), _1> sqrt_i;
 
   //typedef mpl::apply<differential_func, sqrt_i>::type sqrt2;
 
-  typedef RATIONAL(2,0) x;
+  typedef RATIONAL(3,0) x;
+  //typedef mpl::apply<sqrt_i, x> res;
 
   typedef mpl::apply<sqrt_i2, rational_t<0>, x> res;
 

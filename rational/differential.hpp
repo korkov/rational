@@ -8,53 +8,40 @@ namespace rational
   namespace detail
   {
     namespace mpl = boost::mpl;
-    using namespace mpl::placeholders;
+    using namespace boost::mpl::placeholders;
 
     typedef rational_t<1, 1000> lim;
     typedef rational_t<1, 10> lim_n;
 
-#define VAR(V, WHAT) typedef WHAT V
-#define CALL(ARGS...) typename mpl::apply<ARGS >::type
     struct differential_eval
     {
-      // f1 = f(x+delta)
-      // f2 = f(x-delta)
-      // type = (f1-f2)/(2*delta)
       template <class f, class x, class delta>
       struct apply
       {
-        VAR(f1, CALL(f, CALL(plus, x, delta)));
-        VAR(f2, CALL(f, CALL(minus, x, delta)));
-        VAR(type, CALL(divide, CALL(minus, f1, f2), CALL(mult, rational_t<2>, delta)));
+        typedef typename mpl::apply<f, typename mpl::apply<plus, x, delta >::type >::type f1;
+        typedef typename mpl::apply<f, typename mpl::apply<minus, x, delta >::type >::type f2;
+        typedef typename mpl::apply<divide, typename mpl::apply<minus, f1, f2 >::type, typename mpl::apply<mult, rational_t<2>, delta >::type >::type type;
       };
     };
 
     struct differential_algo
     {
-      // diff = f'(x)
-      // f1 = diff*delta + f(x)
-      // f2 = f(x+delta)
-      // err = f1/f2 - 1
-      // cont = lim < abs(err)
-      // new_delta = delta * lim_n
-      // while (cont) differential_algo(f, x, new_delta)
       template <class, class f, class x, class delta>
       struct apply
       {
-        VAR(diff, CALL(differential_eval, f, x, delta));
-        VAR(f1, CALL(plus, CALL(mult, diff, delta), CALL(f, x)));
-        VAR(f2, CALL(f, CALL(plus, x, delta)));
-        VAR(err, CALL(minus, CALL(divide, f1, f2), rational_t<1>));
-        VAR(cont, CALL(less, lim, CALL(abs, err)));
-        VAR(new_delta, CALL(mult, delta, lim_n));
-        VAR(type, CALL(differential_algo, cont, f, x, new_delta));
+        typedef typename mpl::apply<differential_eval, f, x, delta >::type diff;
+        typedef typename mpl::apply<plus, typename mpl::apply<mult, diff, delta >::type, typename mpl::apply<f, x >::type >::type f1;
+        typedef typename mpl::apply<f, typename mpl::apply<plus, x, delta >::type >::type f2;
+        typedef typename mpl::apply<minus, typename mpl::apply<divide, f1, f2 >::type, rational_t<1> >::type err;
+        typedef typename mpl::apply<less, lim, typename mpl::apply<abs, err >::type >::type cont;
+        typedef typename mpl::apply<mult, delta, lim_n >::type new_delta;
+        typedef typename mpl::apply<differential_algo, cont, f, x, new_delta >::type type;
       };
 
-      // type = f'(x)
       template <class f, class x, class delta>
       struct apply<mpl::bool_<false>, f, x, delta>
       {
-        VAR(type, CALL(differential_eval, f, x, delta));
+        typedef typename mpl::apply<differential_eval, f, x, delta >::type type;
       };
     };
 
@@ -63,12 +50,9 @@ namespace rational
       template <class f, class x>
       struct apply
       {
-        VAR(type, CALL(differential_algo, mpl::bool_<true>, f, x, rational_t<1>));
+        typedef typename mpl::apply<differential_algo, mpl::bool_<true>, f, x, rational_t<1> >::type type;
       };
     };
-
-#undef VAR
-#undef CALL
 
     struct differential_func
     {
