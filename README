@@ -1,5 +1,7 @@
 "Rational" is C++ library for compile time floating point computations.
 See example.cpp for example.
 
+Read for details http://habrahabr.ru/post/124963/
+
 --
 Author: Alexander Korkov <korkov@yandex.ru>
